@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Update Post Toolkit</title>
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#151b23;
+    --panel-2:#1c2430;
+    --line:#2a3441;
+    --text:#e6edf3;
+    --muted:#8b98a5;
+    --accent:#5ce1a8;
+    --accent-dim:#2f7a5a;
+    --accent2:#2fa4ff;
+    --accent2-dim:#1b7fce;
+    --mono:'JetBrains Mono','Fira Code',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f5f7fa;
+      --panel:#ffffff;
+      --panel-2:#eef1f5;
+      --line:#dbe1e8;
+      --text:#12181f;
+      --muted:#5b6673;
+      --accent:#0f9d6a;
+      --accent-dim:#c7ead9;
+      --accent2:#1b7fce;
+      --accent2-dim:#cfe6fb;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1117; --panel:#151b23; --panel-2:#1c2430; --line:#2a3441; --text:#e6edf3; --muted:#8b98a5; --accent:#5ce1a8; --accent-dim:#2f7a5a;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    min-height:100%;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:20px 16px 48px;}
+
+  /* ---- Home ---- */
+  .home-title{
+    font-family:var(--mono); font-size:15px; letter-spacing:.02em; font-weight:600;
+    color:var(--muted); margin:4px 0 2px;
+  }
+  .home-title span{color:var(--accent);}
+  .home-sub{color:var(--muted); font-size:13px; margin:0 0 24px; line-height:1.5;}
+
+  .opt{
+    display:flex; align-items:center; gap:14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:18px; margin-bottom:14px; cursor:pointer; text-align:left; width:100%;
+    color:var(--text); font-family:var(--sans);
+  }
+  .opt:active{transform:scale(.98);}
+  .opt-num{
+    flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-weight:700; font-size:16px;
+  }
+  .opt.opt-a .opt-num{background:var(--accent-dim); color:var(--accent);}
+  .opt.opt-b .opt-num{background:var(--accent2-dim); color:var(--accent2);}
+  .opt-body{flex:1; min-width:0;}
+  .opt-title{font-size:15px; font-weight:600; margin-bottom:3px;}
+  .opt-desc{font-size:12.5px; color:var(--muted); line-height:1.4;}
+  .opt-arrow{flex:0 0 auto; color:var(--muted); font-size:18px;}
+
+  /* ---- Shared subview chrome ---- */
+  .topbar{
+    display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .back-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:var(--sans);
+  }
+  .back-btn:active{transform:scale(.97);}
+  .topbar h1{
+    font-family:var(--mono); font-size:15px; letter-spacing:.02em; font-weight:600;
+    color:var(--muted); margin:0;
+  }
+  .topbar h1 span{color:var(--accent);}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---- Caption generator (view A) ---- */
+  .sub{color:var(--muted); font-size:13px; margin:0 0 20px; line-height:1.5;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px; margin-bottom:12px;
+  }
+  .field{
+    display:flex; align-items:flex-start; gap:10px; padding:8px 0;
+    border-top:1px solid var(--line);
+  }
+  .field:first-child{border-top:none; padding-top:2px;}
+  .field:last-child{padding-bottom:2px;}
+  .chk{
+    flex:0 0 auto; width:20px; height:20px; margin-top:22px;
+    accent-color:var(--accent); cursor:pointer;
+  }
+  .fcol{flex:1; min-width:0;}
+  label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted); margin-bottom:5px; font-family:var(--mono);
+  }
+  input[type=text]{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:9px 10px; font-size:14px; font-family:var(--sans);
+    outline:none; transition:border-color .15s;
+  }
+  input[type=text]:focus{border-color:var(--accent);}
+  input[type=text]:disabled{opacity:.4;}
+  .field.off label, .field.off input{opacity:.45;}
+
+  .section-label{
+    font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--accent); margin:22px 2px 8px;
+  }
+  .view-b .section-label{color:var(--accent2);}
+
+  .out-head{
+    display:flex; align-items:center; justify-content:space-between; margin:0 2px 8px;
+  }
+  .out-head .section-label{margin:0;}
+  .copy-btn{
+    background:var(--accent); color:#06251a; border:none; border-radius:6px;
+    padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--sans);
+  }
+  .copy-btn:active{transform:scale(.97);}
+  .copy-btn.copied{background:var(--accent-dim); color:var(--text);}
+
+  pre#output{
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    padding:14px; font-family:var(--mono); font-size:13px; line-height:1.65;
+    white-space:pre-wrap; word-break:break-word; overflow-x:auto; margin:0;
+    min-height:120px;
+  }
+
+  .use-btn{
+    margin-top:14px; width:100%; padding:12px; border:none; border-radius:10px;
+    background:var(--accent2); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+    font-family:var(--sans);
+  }
+  .use-btn:active{background:var(--accent2-dim);}
+
+  /* ---- Telegram poster (view B) ---- */
+  .field-b{margin-bottom:14px;}
+  .field-b label{margin:0 0 6px;}
+  .field-b input{
+    width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--text); font-size:14px; outline:none; font-family:var(--sans);
+  }
+  .field-b input:focus{border-color:var(--accent2);}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:4px;}
+  .gen-btn{
+    margin-top:8px; width:100%; padding:12px; border:none; border-radius:10px;
+    background:var(--accent2); color:#fff; font-size:15px; font-weight:600; cursor:pointer;
+    font-family:var(--sans);
+  }
+  .gen-btn:active{background:var(--accent2-dim);}
+  .result{margin-top:18px; display:none;}
+  .result.show{display:block;}
+  .link-box{
+    word-break:break-all; background:rgba(47,164,255,0.08); border:1px solid var(--accent2);
+    border-radius:10px; padding:12px; font-size:12.5px; color:var(--accent2); margin-bottom:10px;
+    font-family:var(--mono);
+  }
+  .actions{display:flex; gap:8px;}
+  .actions a, .actions button.secondary{
+    flex:1; text-align:center; padding:10px; border-radius:10px; font-size:13px;
+    text-decoration:none; border:1px solid var(--line); color:var(--text); background:transparent;
+    cursor:pointer; font-family:var(--sans);
+  }
+  .actions a.primary{background:var(--accent2); color:#fff; border-color:var(--accent2);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <div class="view active" id="view-home">
+    <div class="home-title">Update Post <span>Toolkit</span></div>
+    <p class="home-sub">Choose what you want to do.</p>
+
+    <button class="opt opt-a" onclick="showView('a')">
+      <div class="opt-num">1</div>
+      <div class="opt-body">
+        <div class="opt-title">Write Caption</div>
+        <div class="opt-desc">Build the formatted update post text (name, version, links etc.)</div>
+      </div>
+      <div class="opt-arrow">&rsaquo;</div>
+    </button>
+
+    <button class="opt opt-b" onclick="showView('b')">
+      <div class="opt-num">2</div>
+      <div class="opt-body">
+        <div class="opt-title">Post</div>
+        <div class="opt-desc">Generate a Telegram sendPhoto link to post a photo + caption</div>
+      </div>
+      <div class="opt-arrow">&rsaquo;</div>
+    </button>
+  </div>
+
+  <!-- ============ VIEW A: Write Caption ============ -->
+  <div class="view view-a" id="view-a">
+    <div class="topbar">
+      <button class="back-btn" onclick="showView('home')">&larr; Back</button>
+      <h1>Write <span>Caption</span></h1>
+    </div>
+    <p class="sub">Fill in what changed, untick what didn't. Name and version turn into bold text automatically.</p>
+
+    <div class="card">
+      <div class="field" data-row="name">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Name (device / ROM codename)</label>
+          <input type="text" value="X1" placeholder="e.g. X1">
+        </div>
+      </div>
+      <div class="field" data-row="version">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Version</label>
+          <input type="text" value="12.2" placeholder="e.g. 12.2">
+        </div>
+      </div>
+      <div class="field" data-row="maintainer">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Maintainer</label>
+          <input type="text" value="ALiF LAiLA" placeholder="e.g. ALiF LAiLA">
+        </div>
+      </div>
+      <div class="field" data-row="filesize">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>File size</label>
+          <input type="text" value="" placeholder="e.g. 1.4 GB">
+        </div>
+      </div>
+      <div class="field" data-row="builddate">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Build date</label>
+          <input type="text" value="September 24, 2026" placeholder="e.g. September 24, 2026">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Links</div>
+    <div class="card">
+      <div class="field" data-row="download">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Download link</label>
+          <input type="text" value="" placeholder="https://...">
+        </div>
+      </div>
+      <div class="field" data-row="screenshots">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Screenshots link</label>
+          <input type="text" value="" placeholder="https://...">
+        </div>
+      </div>
+      <div class="field" data-row="changelogs">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Changelogs link</label>
+          <input type="text" value="" placeholder="https://...">
+        </div>
+      </div>
+      <div class="field" data-row="support">
+        <input type="checkbox" class="chk" checked>
+        <div class="fcol">
+          <label>Support link</label>
+          <input type="text" value="" placeholder="https://...">
+        </div>
+      </div>
+    </div>
+
+    <div class="out-head">
+      <div class="section-label">Preview / output</div>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+    <pre id="output"></pre>
+
+    <button class="use-btn" onclick="useCaptionInPost()">Use this caption in Post &rarr;</button>
+  </div>
+
+  <!-- ============ VIEW B: Post ============ -->
+  <div class="view view-b" id="view-b">
+    <div class="topbar">
+      <button class="back-btn" onclick="showView('home')">&larr; Back</button>
+      <h1>Post <span>(Telegram)</span></h1>
+    </div>
+    <p class="sub">Fill in the details, generate the link, and the photo will be sent as soon as it's opened in the browser.</p>
+
+    <div class="field-b">
+      <label>Bot Token</label>
+      <input id="token" type="text" placeholder="123456:AAFxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    </div>
+
+    <div class="field-b">
+      <label>Channel / Chat ID</label>
+      <input id="chatid" type="text" placeholder="@channelusername or -1001234567890" autocomplete="off">
+    </div>
+
+    <div class="field-b">
+      <label>Photo URL (direct image link)</label>
+      <input id="photo" type="text" placeholder="https://example.com/photo.jpg" autocomplete="off">
+      <div class="hint">The link must end directly in .jpg / .png.</div>
+    </div>
+
+    <div class="field-b">
+      <label>Caption</label>
+      <input id="caption" type="text" placeholder="Your caption here" autocomplete="off">
+    </div>
+
+    <div class="field-b">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <label style="margin:0;">Buttons (real inline buttons, from Links)</label>
+        <button type="button" class="back-btn" style="padding:6px 10px; font-size:12px;" onclick="syncButtonsFromLinks()">Sync</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <input type="checkbox" id="attachButtons" class="chk" style="width:18px;height:18px;margin:0;" checked>
+        <span class="hint" style="margin:0;">Attach these as real Telegram buttons (not text)</span>
+      </div>
+      <div id="buttonsPreview" class="hint">No links yet — fill Links in "Write Caption" then tap Sync.</div>
+    </div>
+
+    <button class="gen-btn" onclick="generateLink()">Generate Link</button>
+
+    <div class="result" id="result">
+      <div class="link-box" id="linkBox"></div>
+      <div class="actions">
+        <a href="#" id="openBtn" class="primary" target="_blank" rel="noopener">Open &amp; Send</a>
+        <button class="secondary" onclick="copyLink()">Copy</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- view switching ---------- */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ---------- View A: caption generator ---------- */
+function toBold(str){
+  const upperBase = 0x1D5D4; // 'A' sans-bold
+  const lowerBase = 0x1D5EE; // 'a' sans-bold
+  const digitBase = 0x1D7EC; // '0' sans-bold
+  let out = '';
+  for(const ch of str){
+    const code = ch.codePointAt(0);
+    if(code >= 65 && code <= 90){ out += String.fromCodePoint(upperBase + (code-65)); }
+    else if(code >= 97 && code <= 122){ out += String.fromCodePoint(lowerBase + (code-97)); }
+    else if(code >= 48 && code <= 57){ out += String.fromCodePoint(digitBase + (code-48)); }
+    else{ out += ch; }
+  }
+  return out;
+}
+
+const rows = ['name','version','maintainer','filesize','builddate','download','screenshots','changelogs','support'];
+const state = {};
+rows.forEach(r=>{
+  const field = document.querySelector('#view-a [data-row="'+r+'"]');
+  const chk = field.querySelector('.chk');
+  const inp = field.querySelector('input[type=text]');
+  state[r] = {chk, inp};
+  chk.addEventListener('change', ()=>{ inp.disabled = !chk.checked; field.classList.toggle('off', !chk.checked); render(); });
+  inp.addEventListener('input', render);
+});
+
+function val(r){ return state[r].inp.value.trim(); }
+function on(r){ return state[r].chk.checked; }
+function linkVal(r, fallback){
+  const v = val(r) || fallback;
+  if(/^https?:\/\//i.test(v)) return v;
+  return 'https://' + v;
+}
+
+function render(){
+  const lines = [];
+
+  const nameVal = val('name');
+  lines.push('New update of ' + (nameVal || '—') + ' is now available for Redmi 12 5G / Poco m6 pro 5G');
+  lines.push('');
+
+  const meta = [];
+  if(on('version')) meta.push('version : ' + val('version'));
+  if(on('maintainer')) meta.push('Maintainer : ' + val('maintainer'));
+  if(on('filesize')) meta.push('File Size : ' + val('filesize'));
+  if(on('builddate')) meta.push('Build Date : ' + val('builddate'));
+  lines.push(...meta);
+  lines.push('');
+
+  const links = [];
+  if(on('download')) links.push('[Downloads](buttonurl://' + linkVal('download','example1.com') + ')');
+  if(on('screenshots')) links.push('[Screenshots](buttonurl://' + linkVal('screenshots','example2.com') + ':same)');
+  if(on('changelogs')) links.push('[Changelogs](buttonurl://' + linkVal('changelogs','example3.com') + ')');
+  if(on('support')) links.push('[Support](buttonurl://' + linkVal('support','example4.com') + ')');
+  lines.push(...links);
+
+  document.getElementById('output').textContent = lines.join('\n');
+}
+
+/* Plain caption text (no buttonurl syntax) — this is what a real bot should send as caption,
+   the links become actual Telegram buttons instead, via reply_markup. */
+function plainCaptionText(){
+  const lines = [];
+  const nameVal = val('name');
+  lines.push('New update of ' + (nameVal || '—') + ' is now available for Redmi 12 5G / Poco m6 pro 5G');
+  lines.push('');
+  const meta = [];
+  if(on('version')) meta.push('version : ' + val('version'));
+  if(on('maintainer')) meta.push('Maintainer : ' + val('maintainer'));
+  if(on('filesize')) meta.push('File Size : ' + val('filesize'));
+  if(on('builddate')) meta.push('Build Date : ' + val('builddate'));
+  lines.push(...meta);
+  return lines.join('\n').trim();
+}
+
+/* Real Telegram inline_keyboard, built from the same Links fields.
+   Downloads + Screenshots sit on one row (matches the ":same" grouping above),
+   Changelogs and Support each get their own row. */
+function buildButtonsMarkup(){
+  const row1 = [];
+  if(on('download')) row1.push({ text:'Downloads', url: linkVal('download','example1.com') });
+  if(on('screenshots')) row1.push({ text:'Screenshots', url: linkVal('screenshots','example2.com') });
+  const keyboard = [];
+  if(row1.length) keyboard.push(row1);
+  if(on('changelogs')) keyboard.push([{ text:'Changelogs', url: linkVal('changelogs','example3.com') }]);
+  if(on('support')) keyboard.push([{ text:'Support', url: linkVal('support','example4.com') }]);
+  return keyboard.length ? { inline_keyboard: keyboard } : null;
+}
+
+document.getElementById('copyBtn').addEventListener('click', async ()=>{
+  const text = document.getElementById('output').textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1400);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(_e){}
+    document.body.removeChild(ta);
+  }
+});
+
+render();
+
+/* bridge: send generated caption + real buttons over to the Post view */
+function useCaptionInPost(){
+  document.getElementById('caption').value = plainCaptionText();
+  syncButtonsFromLinks();
+  showView('b');
+}
+
+let currentButtonsMarkup = null;
+
+function syncButtonsFromLinks(){
+  currentButtonsMarkup = buildButtonsMarkup();
+  const preview = document.getElementById('buttonsPreview');
+  if(!currentButtonsMarkup){
+    preview.textContent = 'No links yet — fill Links in "Write Caption" then tap Sync.';
+    return;
+  }
+  const labels = currentButtonsMarkup.inline_keyboard
+    .map(row => row.map(b => b.text).join(' + '))
+    .join('  |  ');
+  preview.textContent = 'Rows: ' + labels;
+}
+syncButtonsFromLinks();
+
+/* ---------- View B: Telegram sendPhoto link ---------- */
+function generateLink() {
+  const token = document.getElementById('token').value.trim();
+  const chatid = document.getElementById('chatid').value.trim();
+  const photo = document.getElementById('photo').value.trim();
+  const caption = document.getElementById('caption').value.trim();
+  const attach = document.getElementById('attachButtons').checked;
+
+  if (!token || !chatid || !photo) {
+    alert('Bot Token, Chat ID and Photo URL are required.');
+    return;
+  }
+
+  const base = 'https://api.telegram.org/bot' + token + '/sendPhoto';
+  const params = new URLSearchParams();
+  params.set('chat_id', chatid);
+  params.set('photo', photo);
+  if (caption) params.set('caption', caption);
+  if (attach && currentButtonsMarkup) {
+    params.set('reply_markup', JSON.stringify(currentButtonsMarkup));
+  }
+
+  const finalUrl = base + '?' + params.toString();
+
+  document.getElementById('linkBox').textContent = finalUrl;
+  document.getElementById('openBtn').href = finalUrl;
+  document.getElementById('result').classList.add('show');
+}
+
+function copyLink() {
+  const text = document.getElementById('linkBox').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Link copied!');
+  }).catch(() => {
+    alert('Copy failed, please select and copy it manually.');
+  });
+}
+</script>
+</body>
+</html>
