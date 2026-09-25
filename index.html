@@ -1,285 +1,241 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TG Post Generator</title>
+<title>ROM Post Generator</title>
 <style>
   :root{
-    --bg:#0f1115; --card:#171a21; --border:#2a2e38; --text:#e8eaed;
-    --muted:#9aa0aa; --accent:#5b8cff; --accent2:#3fd98a;
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --border:#2a2f3a;
+    --text:#e7e9ee; --muted:#8a90a0; --accent:#5aa9ff; --accent2:#7ee0a8;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
   }
-  :root[data-theme="light"]{
-    --bg:#f4f5f7; --card:#ffffff; --border:#e2e4e9; --text:#1a1d23;
-    --muted:#6b7280; --accent:#3b6fe0; --accent2:#12a468;
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f4f5f7; --panel:#ffffff; --panel2:#f0f1f4;
+      --border:#dde0e6; --text:#171a21; --muted:#6b7180;
+    }
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding-top:env(safe-area-inset-top,0px);
-    padding-bottom:env(safe-area-inset-bottom,0px);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
-  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 40px;}
-  h1{font-size:20px;margin:4px 0 18px;}
-  h2{font-size:13px;color:var(--muted);margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;}
-  .card{
-    background:var(--card); border:1px solid var(--border);
-    border-radius:14px; padding:16px; margin-bottom:14px;
-  }
-  .toprow{display:flex;justify-content:space-between;align-items:center;}
-  .toprow .lbl{font-size:13px;color:var(--muted);}
-
-  .row{
-    display:flex; align-items:center; gap:10px; padding:9px 0;
-    border-bottom:1px solid var(--border);
-  }
-  .row:last-child{border-bottom:none;}
-  .row label.tag{
-    font-size:13px; color:var(--muted); width:100px; flex-shrink:0;
-  }
-  .row input[type="text"]{
-    flex:1; min-width:0; padding:9px 11px; border-radius:9px;
-    border:1px solid var(--border); background:var(--bg); color:var(--text);
-    font-size:14px; outline:none;
-  }
-  .row input[type="text"]:focus{border-color:var(--accent);}
-
-  .switch{
-    position:relative; width:36px; height:20px; flex-shrink:0; cursor:pointer;
-  }
+  .wrap{max-width:640px; margin:0 auto; padding:28px 18px 60px;}
+  h1{font-size:1.3rem; font-weight:700; margin:0 0 4px; letter-spacing:-0.01em;}
+  .sub{color:var(--muted); font-size:0.85rem; margin:0 0 22px;}
+  .tabs{display:flex; gap:8px; margin-bottom:18px; background:var(--panel2); padding:4px; border-radius:10px; border:1px solid var(--border);}
+  .tab{flex:1; text-align:center; padding:9px 0; border-radius:8px; cursor:pointer; font-size:0.88rem; font-weight:600; color:var(--muted); user-select:none; transition:background .15s,color .15s;}
+  .tab.active{background:var(--accent); color:#0b1220;}
+  .panel{display:none; background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px;}
+  .panel.active{display:block;}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; padding:6px 4px 16px; border-bottom:1px solid var(--border); margin-bottom:16px;}
+  .toggle-row span{font-size:0.9rem; font-weight:600;}
+  .switch{position:relative; width:42px; height:24px; flex-shrink:0;}
   .switch input{opacity:0; width:0; height:0;}
-  .slider{
-    position:absolute; inset:0; background:var(--border); border-radius:20px;
-    transition:.15s;
-  }
-  .slider::before{
-    content:""; position:absolute; height:16px; width:16px; left:2px; top:2px;
-    background:#fff; border-radius:50%; transition:.15s;
-  }
+  .slider{position:absolute; inset:0; background:var(--panel2); border:1px solid var(--border); border-radius:999px; cursor:pointer; transition:.15s;}
+  .slider::before{content:''; position:absolute; width:18px; height:18px; left:2px; top:2px; background:var(--muted); border-radius:50%; transition:.15s;}
   .switch input:checked + .slider{background:var(--accent);}
-  .switch input:checked + .slider::before{transform:translateX(16px);}
-
-  .out-card{position:relative;}
-  #output{
-    white-space:pre-wrap; word-break:break-word; font-size:15px;
-    line-height:1.6; min-height:40px;
+  .switch input:checked + .slider::before{transform:translateX(18px); background:#0b1220;}
+  .field{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .field label{flex:0 0 108px; font-size:0.82rem; color:var(--muted); font-weight:600;}
+  .field input[type=text]{
+    flex:1; background:var(--panel2); border:1px solid var(--border); border-radius:8px;
+    padding:9px 10px; color:var(--text); font-size:0.9rem; min-width:0;
   }
-  #output b{color:var(--accent2);}
-  .copybtn{
-    margin-top:12px; width:100%; padding:11px; border:none; border-radius:9px;
-    background:var(--accent); color:#fff; font-size:15px; font-weight:600;
-    cursor:pointer;
+  .field input[type=text]:focus{outline:none; border-color:var(--accent);}
+  .field input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent); flex-shrink:0;}
+  .fixed-note{font-size:0.78rem; color:var(--muted); margin:2px 0 16px; line-height:1.5;}
+  .fixed-note code{color:var(--accent2); font-family:var(--mono); font-size:0.76rem;}
+  .out-label{font-size:0.78rem; color:var(--muted); font-weight:600; margin:18px 0 8px; text-transform:none;}
+  pre.out{
+    background:var(--panel2); border:1px solid var(--border); border-radius:10px;
+    padding:12px; font-family:var(--mono); font-size:0.85rem; line-height:1.6;
+    white-space:pre-wrap; word-break:break-word; color:var(--text); margin:0; min-height:40px;
   }
-  .copybtn.copied{background:var(--accent2);}
+  .copy-btn{
+    width:100%; margin-top:14px; padding:12px; border:none; border-radius:10px;
+    background:var(--accent); color:#0b1220; font-weight:700; font-size:0.92rem;
+    cursor:pointer; transition:opacity .15s;
+  }
+  .copy-btn:active{opacity:0.75;}
+  .copy-btn.done{background:var(--accent2);}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Telegram Post Generator</h1>
+  <h1>ROM Post Generator</h1>
+  <p class="sub">Fill in the fields, then copy the formatted post.</p>
 
-  <div class="card">
-    <div class="toprow">
-      <span class="lbl">Bold Titles</span>
+  <div class="tabs">
+    <div class="tab active" data-tab="basic">Basic Details</div>
+    <div class="tab" data-tab="links">Links</div>
+  </div>
+
+  <!-- BASIC DETAILS -->
+  <div class="panel active" id="panel-basic">
+    <div class="toggle-row">
+      <span>Bold titles</span>
       <label class="switch">
-        <input type="checkbox" id="boldToggle" checked>
+        <input type="checkbox" id="boldToggle">
         <span class="slider"></span>
       </label>
     </div>
+
+    <div class="field">
+      <label>ROM Title</label>
+      <input type="text" id="romTitle" placeholder="e.g. crDroidAndroid 9.0">
+    </div>
+
+    <div class="field">
+      <input type="checkbox" id="chkVersion" checked>
+      <label style="flex:0 0 88px">Version</label>
+      <input type="text" id="version" placeholder="e.g. 3.2">
+    </div>
+    <div class="field">
+      <input type="checkbox" id="chkTag" checked>
+      <label style="flex:0 0 88px">Tag</label>
+      <input type="text" id="tag" placeholder="e.g. STABLE">
+    </div>
+    <div class="field">
+      <input type="checkbox" id="chkMaintainer" checked>
+      <label style="flex:0 0 88px">Maintainer</label>
+      <input type="text" id="maintainer" placeholder="e.g. @yourname">
+    </div>
+    <div class="field">
+      <input type="checkbox" id="chkBuildDate" checked>
+      <label style="flex:0 0 88px">Build Date</label>
+      <input type="text" id="buildDate" placeholder="e.g. 25 Sept 2026">
+    </div>
+    <div class="field">
+      <input type="checkbox" id="chkCredits" checked>
+      <label style="flex:0 0 88px">Credits</label>
+      <input type="text" id="credits" placeholder="e.g. CAF, LineageOS">
+    </div>
+
+    <div class="out-label">Preview</div>
+    <pre class="out" id="basicOut"></pre>
+    <button class="copy-btn" id="copyBasic">Copy</button>
   </div>
 
-  <div class="card">
-    <div class="row">
-      <span class="tag">Title</span>
-      <input type="text" id="title">
-      <label class="switch"><input type="checkbox" id="title_on" checked><span class="slider"></span></label>
+  <!-- LINKS -->
+  <div class="panel" id="panel-links">
+    <div class="field">
+      <label style="flex:0 0 108px">Download</label>
+      <input type="text" id="linkDownload" placeholder="Download link">
     </div>
-    <div class="row">
-      <span class="tag">Tag</span>
-      <input type="text" id="tag">
-      <label class="switch"><input type="checkbox" id="tag_on" checked><span class="slider"></span></label>
+    <div class="field">
+      <label style="flex:0 0 108px">Screenshot</label>
+      <input type="text" id="linkScreenshot" placeholder="Screenshot link">
     </div>
-    <div class="row">
-      <span class="tag">Version</span>
-      <input type="text" id="version">
-      <label class="switch"><input type="checkbox" id="version_on" checked><span class="slider"></span></label>
+    <div class="field">
+      <label style="flex:0 0 108px">Changelogs</label>
+      <input type="text" id="linkChangelog" placeholder="Changelog link">
     </div>
-    <div class="row">
-      <span class="tag">Maintainer</span>
-      <input type="text" id="maintainer">
-      <label class="switch"><input type="checkbox" id="maintainer_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Checksum</span>
-      <input type="text" id="checksum">
-      <label class="switch"><input type="checkbox" id="checksum_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Build Date</span>
-      <input type="text" id="builddate">
-      <label class="switch"><input type="checkbox" id="builddate_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Credit</span>
-      <input type="text" id="credit">
-      <label class="switch"><input type="checkbox" id="credit_on" checked><span class="slider"></span></label>
-    </div>
-  </div>
 
-  <div class="card">
-    <h2>Buttons (links)</h2>
-    <div class="row">
-      <span class="tag">Download</span>
-      <input type="text" id="btn_download">
-      <label class="switch"><input type="checkbox" id="btn_download_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Support Group</span>
-      <input type="text" id="btn_supportgroup">
-      <label class="switch"><input type="checkbox" id="btn_supportgroup_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Screenshot</span>
-      <input type="text" id="btn_screenshot">
-      <label class="switch"><input type="checkbox" id="btn_screenshot_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Support Us</span>
-      <input type="text" id="btn_supportus">
-      <label class="switch"><input type="checkbox" id="btn_supportus_on" checked><span class="slider"></span></label>
-    </div>
-    <div class="row">
-      <span class="tag">Changelogs</span>
-      <input type="text" id="btn_changelog">
-      <label class="switch"><input type="checkbox" id="btn_changelog_on" checked><span class="slider"></span></label>
-    </div>
-  </div>
+    <p class="fixed-note">Support group and Support Us links are fixed:<br>
+      <code>https://t.me/TheToplexy</code><br>
+      <code>https://t.me/TheToplexy/11/8295</code>
+    </p>
 
-  <div class="card out-card">
-    <div id="output"></div>
-    <button class="copybtn" id="copyBtn">Copy for Telegram</button>
+    <div class="out-label">Preview</div>
+    <pre class="out" id="linksOut"></pre>
+    <button class="copy-btn" id="copyLinks">Copy</button>
   </div>
 </div>
 
 <script>
-  const fields = ["version","maintainer","checksum","builddate","credit"];
-  const labels = {version:"Version", maintainer:"Maintainer", checksum:"Checksum", builddate:"Build Date", credit:"Credit"};
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+    });
+  });
 
-  const titleInput = document.getElementById("title");
-  const titleOn = document.getElementById("title_on");
-  const tagInput = document.getElementById("tag");
-  const tagOn = document.getElementById("tag_on");
-  const boldToggle = document.getElementById("boldToggle");
-  const output = document.getElementById("output");
-  const copyBtn = document.getElementById("copyBtn");
+  const SUPPORT_GROUP = 'https://t.me/TheToplexy';
+  const SUPPORT_US = 'https://t.me/TheToplexy/11/8295';
 
-  function val(id){ return document.getElementById(id).value.trim(); }
-  function on(id){ return document.getElementById(id).checked; }
-
-  function buttonRow(label1, id1, label2, id2){
-    const v1 = (id1 && on(id1+"_on")) ? val(id1) : "";
-    const v2 = (id2 && on(id2+"_on")) ? val(id2) : "";
-    const parts = [];
-    if(v1) parts.push(`[${label1}](buttonurl://${v1})`);
-    if(v2) parts.push(v1 ? `[${label2}](buttonurl://${v2}:same)` : `[${label2}](buttonurl://${v2})`);
-    return parts;
+  function label(text){
+    return document.getElementById('boldToggle').checked ? '**'+text+'**' : text;
   }
 
-  function buildRawText(){
-    const bold = boldToggle.checked;
-    const lines = [];
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
-    if(titleOn.checked && titleInput.value.trim()){
-      lines.push(titleInput.value.trim());
-    }
-    if(tagOn.checked && tagInput.value.trim()){
-      lines.push(tagInput.value.trim());
-    }
-    if(lines.length) lines.push("");
-
-    fields.forEach(id => {
-      const onBox = document.getElementById(id+"_on");
-      const v = document.getElementById(id).value.trim();
-      if(onBox.checked && v){
-        const lbl = bold ? `**${labels[id]}**` : labels[id];
-        lines.push(`${lbl} : ${v}`);
+  function renderBasic(){
+    const title = document.getElementById('romTitle').value.trim();
+    const rows = [
+      ['Version', 'version', 'chkVersion'],
+      ['Tag', 'tag', 'chkTag'],
+      ['Maintainer', 'maintainer', 'chkMaintainer'],
+      ['Build Date', 'buildDate', 'chkBuildDate'],
+      ['Credits', 'credits', 'chkCredits'],
+    ];
+    let lines = [];
+    if(title) lines.push(title);
+    lines.push('');
+    rows.forEach(([lbl, id, chkId])=>{
+      const on = document.getElementById(chkId).checked;
+      const val = document.getElementById(id).value.trim();
+      if(on && val){
+        lines.push(label(lbl) + ' : ' + val);
       }
     });
+    if(!title && lines[0]==='') lines.shift();
+    const plainText = lines.join('\n');
+    document.getElementById('basicOut').textContent = plainText;
+    window.__basicPlain = plainText;
+  }
 
-    const btnLines = [];
-    const row1 = buttonRow("Download","btn_download","Support Group","btn_supportgroup");
-    const row2 = buttonRow("Screenshot","btn_screenshot","Support Us","btn_supportus");
-    const row3 = buttonRow("Changelogs","btn_changelog","","");
+  function renderLinks(){
+    const d = document.getElementById('linkDownload').value.trim() || 'Link1';
+    const s = document.getElementById('linkScreenshot').value.trim() || 'Link2';
+    const c = document.getElementById('linkChangelog').value.trim() || 'link3';
+    const out =
+      'Download - '+d+' | Support group - '+SUPPORT_GROUP+'\n'+
+      'Screenshot - '+s+' | Support Us - '+SUPPORT_US+'\n'+
+      'Changelogs - '+c;
+    document.getElementById('linksOut').textContent = out;
+  }
 
-    if(row1.length){ btnLines.push(...row1); }
-    if(row2.length){ btnLines.push(...row2); }
-    if(row3.length){ btnLines.push(...row3.filter(Boolean)); }
+  document.querySelectorAll('#panel-basic input').forEach(el=>el.addEventListener('input', renderBasic));
+  document.querySelectorAll('#panel-links input').forEach(el=>el.addEventListener('input', renderLinks));
 
-    if(btnLines.length){
-      lines.push("");
-      lines.push(...btnLines);
+  function copyText(elId, btnId){
+    const text = document.getElementById(elId).textContent;
+    const btn = document.getElementById(btnId);
+    const done = ()=>{
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('done');
+      setTimeout(()=>{ btn.textContent = orig; btn.classList.remove('done'); }, 1200);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
     }
-
-    return lines.join("\n");
   }
-
-  function render(){
-    const raw = buildRawText();
-    const esc = raw.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const html = esc.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-    output.innerHTML = html;
-  }
-
-  document.querySelectorAll('input[type="text"]').forEach(el => el.addEventListener("input", render));
-  document.querySelectorAll('input[type="checkbox"]').forEach(el => el.addEventListener("change", render));
-
-  render();
-
-  function execCommandCopy(text){
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.left = "0";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    ta.setSelectionRange(0, text.length);
-    let ok = false;
-    try{ ok = document.execCommand("copy"); }catch(e){ ok = false; }
+  function fallbackCopy(text, cb){
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
     document.body.removeChild(ta);
-    return ok;
+    cb();
   }
 
-  copyBtn.addEventListener("click", async () => {
-    const text = buildRawText();
-    if(!text){
-      copyBtn.textContent = "Nothing to copy";
-      setTimeout(() => { copyBtn.textContent = "Copy for Telegram"; }, 1500);
-      return;
-    }
+  document.getElementById('copyBasic').addEventListener('click', ()=>copyText('basicOut','copyBasic'));
+  document.getElementById('copyLinks').addEventListener('click', ()=>copyText('linksOut','copyLinks'));
 
-    // execCommand runs synchronously within the click's user-gesture
-    // window, so it's tried first; the async Clipboard API is the
-    // fallback for browsers where execCommand has been removed.
-    let success = execCommandCopy(text);
-
-    if(!success && navigator.clipboard){
-      try{
-        await navigator.clipboard.writeText(text);
-        success = true;
-      }catch(e){ success = false; }
-    }
-
-    copyBtn.textContent = success ? "Copied!" : "Copy failed";
-    copyBtn.classList.toggle("copied", success);
-    setTimeout(() => {
-      copyBtn.textContent = "Copy for Telegram";
-      copyBtn.classList.remove("copied");
-    }, 1500);
-  });
+  renderBasic();
+  renderLinks();
 </script>
 </body>
 </html>
